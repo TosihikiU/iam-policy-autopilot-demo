@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Bootstrap for the IAM Policy Autopilot demo.
+  GitHub OIDC provider + deploy role (permissions grown later) + iam-admin role (approval-gated).
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Default: TosihikiU
+  GitHubRepo:
+    Type: String
+    Default: iam-policy-autopilot-demo
+  ApprovalEnvironment:
+    Type: String
+    Default: iam-admin
+    Description: GitHub Environment name that gates the iam-admin role (case-sensitive)
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+
+  # Role used by the deploy job. Created with NO permissions on purpose;
+  # the policy is attached later by the approval-gated job (from policies/deploy-role.json).
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: apdemo-github-deploy
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOidcProvider
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOwner}/${GitHubRepo}:ref:refs/heads/main"
+
+  # Role used only by the job that passed the GitHub Environment approval.
+  # Its only power: write the inline policy of the deploy role. It cannot touch itself.
+  IamAdminRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: apdemo-github-iam-admin
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOidcProvider
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOwner}/${GitHubRepo}:environment:${ApprovalEnvironment}"
+      Policies:
+        - PolicyName: update-deploy-role-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PutRolePolicy
+                  - iam:GetRolePolicy
+                Resource: !GetAtt DeployRole.Arn
+
+Outputs:
+  DeployRoleArn:
+    Value: !GetAtt DeployRole.Arn
+  IamAdminRoleArn:
+    Value: !GetAtt IamAdminRole.Arn

@@ -1,0 +1,88 @@
+name: terraform-demo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - "policies/**"
+
+permissions:
+  contents: read
+
+# State is local to the runner, so never run two applies at the same time.
+concurrency:
+  group: terraform-demo
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-northeast-1
+
+jobs:
+  # Job 0: did this push touch policies/ ?
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      policies_changed: ${{ steps.diff.outputs.policies_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        run: |
+          if git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" | grep -q '^policies/'; then
+            echo "policies_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "policies_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Job 1: attach policies/deploy-role.json to the deploy role.
+  # Runs only when policies/ changed, and waits for approval on the iam-admin Environment.
+  grant-permissions:
+    needs: detect
+    if: needs.detect.outputs.policies_changed == 'true'
+    runs-on: ubuntu-latest
+    environment: iam-admin
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/apdemo-github-iam-admin
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Put inline policy on the deploy role
+        run: |
+          aws iam put-role-policy \
+            --role-name apdemo-github-deploy \
+            --policy-name autopilot-generated \
+            --policy-document file://policies/deploy-role.json
+
+  # Job 2: terraform apply -> destroy with the deploy role.
+  # Runs after job 1 succeeded, or when job 1 was skipped (policies/ unchanged).
+  deploy:
+    needs: [detect, grant-permissions]
+    if: >-
+      ${{ !cancelled()
+      && needs.detect.result == 'success'
+      && (needs.grant-permissions.result == 'success' || needs.grant-permissions.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/apdemo-github-deploy
+          aws-region: ${{ env.AWS_REGION }}
+      - run: terraform init
+      - run: terraform apply -auto-approve
+      - name: Destroy (always, to leave AWS clean)
+        if: always()
+        run: terraform destroy -auto-approve
