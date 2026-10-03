@@ -7,9 +7,15 @@ Parameters:
   GitHubOwner:
     Type: String
     Default: TosihikiU
+  GitHubOwnerId:
+    Type: String
+    Default: "49503169"
   GitHubRepo:
     Type: String
     Default: iam-policy-autopilot-demo
+  GitHubRepoId:
+    Type: String
+    Default: "1402594345"
   ApprovalEnvironment:
     Type: String
     Default: iam-admin
@@ -39,7 +45,7 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOwner}/${GitHubRepo}:ref:refs/heads/main"
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOwner}@${GitHubOwnerId}/${GitHubRepo}@${GitHubRepoId}:ref:refs/heads/main"
 
   # Role used only by the job that passed the GitHub Environment approval.
   # Its only power: write the inline policy of the deploy role. It cannot touch itself.
@@ -57,7 +63,7 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOwner}/${GitHubRepo}:environment:${ApprovalEnvironment}"
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOwner}@${GitHubOwnerId}/${GitHubRepo}@${GitHubRepoId}:environment:${ApprovalEnvironment}"
       Policies:
         - PolicyName: update-deploy-role-policy
           PolicyDocument:
