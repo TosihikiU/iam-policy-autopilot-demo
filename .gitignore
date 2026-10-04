@@ -45,3 +45,6 @@ terraform.rc
 
 # plan outputs and working files (may contain account IDs)
 work/
+
+# generated lambda package
+terraform/*.zip

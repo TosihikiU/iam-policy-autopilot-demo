@@ -12,10 +12,169 @@
       "Condition": {
         "StringEquals": {
           "iam:PassedToService": [
+            "lambda.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": [
+        "*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
             "s3.amazonaws.com"
           ]
         }
       }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:AttachRolePolicy",
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:DeleteRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfileTags",
+        "iam:ListInstanceProfilesForRole",
+        "iam:ListMFADeviceTags",
+        "iam:ListOpenIDConnectProviderTags",
+        "iam:ListPolicyTags",
+        "iam:ListRolePolicies",
+        "iam:ListRoleTags",
+        "iam:ListSAMLProviderTags",
+        "iam:ListServerCertificateTags",
+        "iam:ListUserTags",
+        "iam:PutRolePolicy",
+        "iam:RemoveRoleFromInstanceProfile",
+        "iam:TagInstanceProfile",
+        "iam:TagMFADevice",
+        "iam:TagOpenIDConnectProvider",
+        "iam:TagPolicy",
+        "iam:TagRole",
+        "iam:TagSAMLProvider",
+        "iam:TagServerCertificate",
+        "iam:TagUser",
+        "iam:UntagInstanceProfile",
+        "iam:UntagMFADevice",
+        "iam:UntagOpenIDConnectProvider",
+        "iam:UntagPolicy",
+        "iam:UntagRole",
+        "iam:UntagSAMLProvider",
+        "iam:UntagServerCertificate",
+        "iam:UntagUser"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:instance-profile/*",
+        "arn:aws:iam::*:mfa/*",
+        "arn:aws:iam::*:oidc-provider/*",
+        "arn:aws:iam::*:policy/*",
+        "arn:aws:iam::*:role/apdemo-lambda-exec-dev",
+        "arn:aws:iam::*:saml-provider/*",
+        "arn:aws:iam::*:server-certificate/*",
+        "arn:aws:iam::*:user/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:DeleteRole",
+        "iam:DeleteRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfileTags",
+        "iam:ListInstanceProfilesForRole",
+        "iam:ListMFADeviceTags",
+        "iam:ListOpenIDConnectProviderTags",
+        "iam:ListPolicyTags",
+        "iam:ListRolePolicies",
+        "iam:ListRoleTags",
+        "iam:ListSAMLProviderTags",
+        "iam:ListServerCertificateTags",
+        "iam:ListUserTags",
+        "iam:RemoveRoleFromInstanceProfile"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:instance-profile/*",
+        "arn:aws:iam::*:mfa/*",
+        "arn:aws:iam::*:oidc-provider/*",
+        "arn:aws:iam::*:policy/*",
+        "arn:aws:iam::*:role/apdemo-lambda-exec-dev",
+        "arn:aws:iam::*:saml-provider/*",
+        "arn:aws:iam::*:server-certificate/*",
+        "arn:aws:iam::*:user/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:GetFunction",
+        "lambda:GetFunctionCodeSigningConfig",
+        "lambda:GetFunctionConcurrency",
+        "lambda:GetLayerVersion",
+        "lambda:ListVersionsByFunction",
+        "lambda:PassCapacityProvider",
+        "lambda:PutFunctionConcurrency"
+      ],
+      "Resource": [
+        "arn:aws:lambda:ap-northeast-1:*:capacity-provider:*",
+        "arn:aws:lambda:ap-northeast-1:*:function:apdemo-api-dev",
+        "arn:aws:lambda:ap-northeast-1:*:layer:*:*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:DeleteFunction",
+        "lambda:GetDurableExecution",
+        "lambda:GetFunction",
+        "lambda:GetFunctionCodeSigningConfig",
+        "lambda:GetFunctionConcurrency",
+        "lambda:GetLayerVersion",
+        "lambda:ListDurableExecutionsByFunction",
+        "lambda:ListVersionsByFunction",
+        "lambda:PassCapacityProvider",
+        "lambda:StopDurableExecution",
+        "lambda:UpdateFunctionConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:lambda:ap-northeast-1:*:capacity-provider:*",
+        "arn:aws:lambda:ap-northeast-1:*:function:apdemo-api-dev",
+        "arn:aws:lambda:ap-northeast-1:*:function:apdemo-api-dev:*/durable-execution/*/*",
+        "arn:aws:lambda:ap-northeast-1:*:layer:*:*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:ListTags"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:ListTags",
+        "lambda:TagResource",
+        "lambda:UntagResource"
+      ],
+      "Resource": [
+        "*"
+      ]
     },
     {
       "Effect": "Allow",
